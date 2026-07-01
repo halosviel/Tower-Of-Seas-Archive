@@ -1,0 +1,404 @@
+--[=[
+	@halosviel | 2026 May 16
+]=]
+
+-- [REQUIRES]
+local import = require("@game/ReplicatedFirst/pip/import")
+local console = require("@game/ReplicatedFirst/pip/console")
+local params = require("@game/ReplicatedFirst/pip/params")
+
+local types = require("./_types")
+local tweenUtils = require("@game/ReplicatedFirst/shared/utils/tweenUtils")
+local soundUtils = require("@game/ReplicatedFirst/shared/utils/soundUtils")
+local maid = require("@game/ReplicatedFirst/shared/libs/maid")
+local events = require("@game/ReplicatedFirst/shared/events")
+
+-- [TYPES]
+type self = types.InterfaceService
+
+-->
+
+return {
+	constructor = function(self: self)
+		-- [CONFIG]
+		self.TWEEN_PRESET = tweenUtils.getPreset(0.4) --# TweenInfo used for tweening to a stage
+		
+		-- [IMPORTS]
+		self.clientService = import "./clientService"
+		
+		-- [ENTRIES]
+		self.main = script.main:Clone() --# parented in ready()
+		self.viewingStage = 1 --# view stage 1 by default (NOT a config)
+		self.firstEnter = true --# for instant camera set on first join
+		self.maid = maid.new()
+	end,
+	
+	_getStageById = function(self: self, id: number) : Model
+		params.expect("number", id)
+		
+		local static: Folder = workspace:FindFirstChild("static")
+		local stages: Folder = static:FindFirstChild("stages")
+		
+		local stage: Model? = stages:FindFirstChild(tostring(id))
+		if stage == nil then
+			console.devErr(`No stage found with id "{id}"`)
+		end
+		
+		return stage
+	end,
+	
+	_viewStage = function(self: self, id: number) : Tween
+		params.expect("number", id)
+		
+		local stage: Model = self:_getStageById(self.viewingStage)
+		local stageCamera: Part = stage:FindFirstChild("Camera")
+		
+		local tween: Tween = game.TweenService:Create(
+			workspace.CurrentCamera,
+			self.TWEEN_PRESET,
+			{
+				CFrame = stageCamera.CFrame
+			}
+		)
+		tween:Play()
+		
+		return tween
+	end,
+	
+	enterMenu = function(self: self)
+		workspace:WaitForChild("static"):WaitForChild("stages")
+		
+		--## Set Camera ##--
+		do
+			local camera: Camera = workspace.CurrentCamera
+			camera.CameraType = Enum.CameraType.Scriptable
+			
+			local stage: Model = self:_getStageById(self.viewingStage)
+			local stageCamera: Part = stage:WaitForChild("Camera")
+			
+			if self.firstEnter then
+				camera.CFrame = stageCamera.CFrame
+				self.firstEnter = false
+				task.wait(1) --# hardcoded delay ☠️
+			else
+				local tween: Tween = self:_viewStage(self.viewingStage) --# tween is auto-played in the function
+				tween.Completed:Wait()
+			end
+		end
+		
+		--## Animate Menu ##--
+		--# (assumes everything is already transparent)
+		do
+			--### Stage Info ###--
+			do
+				local title = self.main.dynamic.Menu.stageInfo.Title
+				local id = self.main.dynamic.Menu.stageInfo.Id
+				
+				title.AnchorPoint = Vector2.new(0.5, 0.1)
+				id.AnchorPoint = Vector2.new(0.5, 0.1)
+				
+				--## Open Animations ##--
+				
+				local function animateIn(textLabel: TextLabel)
+					game.TweenService:Create(
+						textLabel,
+						tweenUtils.getPreset(0.75),
+						{
+							AnchorPoint = Vector2.new(0.5, 0.5),
+							TextTransparency = 0
+						}
+					):Play()
+				end
+				
+				animateIn(title)
+				task.delay(0.3, function()
+					animateIn(id)
+				end)
+				
+				--## Hover Animations ##--
+				
+				local function initLabel(textLabel: TextLabel)
+					local originalTextColor: Color3 = textLabel.TextColor3
+					
+					self.maid:GiveTask(textLabel.MouseEnter:Connect(function()
+						game.TweenService:Create(
+							textLabel,
+							tweenUtils.getPreset(0.25),
+							{
+								TextColor3 = textLabel == id and Color3.fromRGB(235, 235, 235) or Color3.fromRGB(255, 255, 255)
+							}
+						):Play()
+					end))
+					
+					self.maid:GiveTask(textLabel.MouseLeave:Connect(function()
+						game.TweenService:Create(
+							textLabel,
+							tweenUtils.getPreset(0.25),
+							{
+								TextColor3 = originalTextColor
+							}
+						):Play()
+					end))
+				end
+				
+				initLabel(title)
+				initLabel(id)
+			end
+			
+			--## Controls ##--
+			do
+				local controls = { --# hardcoded order ╥﹏╥
+					self.main.dynamic.Menu.controls.Back,
+					self.main.dynamic.Menu.controls.Play,
+					self.main.dynamic.Menu.controls.Forward
+				}
+				
+				local callbacks = {
+					["Back"] = function()
+						if self.viewingStage - 1 == 0 then
+							self.viewingStage = #workspace.static.stages:GetChildren()
+						else
+							self.viewingStage -= 1
+						end
+						
+						self:_viewStage(self.viewingStage)
+					end,
+					
+					["Play"] = function()
+						local response: boolean, message: string? = events.selectStage:Fire(self.viewingStage)
+						if response == nil then
+							console.warn(`No response received after requesting to select stage {self.viewingStage}`)
+							return
+						end
+						
+						if response == true then
+							self:exitMenu()
+							self.clientService.selectedStage = self.viewingStage
+						else
+							if message then
+								console.warn(`Server rejected stage select request with message: {tostring(message)}`)
+							else
+								console.warn("Server rejected stage select request with no message")
+							end
+						end
+					end,
+					
+					["Forward"] = function()
+						if self.viewingStage + 1 > #workspace.static.stages:GetChildren() then
+							self.viewingStage = 1
+						else
+							self.viewingStage += 1
+						end
+						
+						self:_viewStage(self.viewingStage)
+					end,
+				}
+				
+				task.wait(0.7)
+				
+				--## hover effects + buttonUp & buttonDown ##--
+				
+				local function initButton(textButton: TextButton)
+					local originalTextColor: Color3 = textButton.TextColor3
+					local uiScale: UIScale = textButton:FindFirstChildOfClass("UIScale")
+					
+					self.maid:GiveTask(textButton.MouseEnter:Connect(function()
+						for _, _textButton: TextButton in controls do
+							if _textButton == textButton then
+								continue
+							end
+							
+							game.TweenService:Create(
+								_textButton,
+								tweenUtils.getPreset(0.25),
+								{ TextTransparency = 0.5 }
+							):Play()
+						end
+						
+						soundUtils.wrap("hover")
+							:clone()
+							:autoDestroy()
+							:setParent(game.SoundService.playing)
+							:play()
+					end))
+					
+					self.maid:GiveTask(textButton.MouseLeave:Connect(function()
+						for _, _textButton: TextButton in controls do
+							if _textButton == textButton then
+								continue
+							end
+							
+							game.TweenService:Create(
+								_textButton,
+								tweenUtils.getPreset(0.25),
+								{ TextTransparency = 0 }
+							):Play()
+						end
+					end))
+					
+					self.maid:GiveTask(textButton.MouseButton1Down:Connect(function()
+						uiScale.Scale = 0.9
+						soundUtils.wrap("click")
+							:clone()
+							:autoDestroy()
+							:setParent(game.SoundService.playing)
+							:play()
+						
+						--## Click Functionality ##--
+						
+						local callback: (() -> nil)? = callbacks[textButton.Name]
+						if not callback then
+							console.devErr(`Control callback "{textButton.Name}" does not exist`)
+						end
+						
+						callback()
+					end))
+					
+					self.maid:GiveTask(textButton.MouseButton1Up:Connect(function()
+						uiScale.Scale = 1
+					end))
+				end
+				
+				--## Init ##--
+				
+				for _, textButton: TextButton in ipairs(controls) do
+					--# fade in
+					game.TweenService:Create(
+						textButton,
+						tweenUtils.getPreset(0.75),
+						{ TextTransparency = 0 }
+					):Play()
+					
+					--# hover effects
+					initButton(textButton)
+					task.wait(0.2)
+				end
+			end
+		end
+	end,
+	
+	exitMenu = function(self: self)
+		self.maid:DoCleaning()
+		
+		--## Fadeout Effect ##--
+		
+		do
+			local controls = { --# hardcoded again lol (but its backwards)
+				self.main.dynamic.Menu.controls.Forward,
+				self.main.dynamic.Menu.controls.Play,
+				self.main.dynamic.Menu.controls.Back
+			}
+			
+			task.defer(function()
+				for _, textButton: TextButton in ipairs(controls) do
+					if not textButton:IsA("TextButton") then
+						continue
+					end
+					
+					game.TweenService:Create(
+						textButton,
+						tweenUtils.getPreset(0.5),
+						{
+							TextTransparency = 1
+						}
+					):Play()
+				end
+				
+				game.TweenService:Create(
+					self.main.dynamic.Menu.stageInfo.Id,
+					tweenUtils.getPreset(0.5),
+					{
+						TextTransparency = 1
+					}
+				):Play()
+				task.wait(1)
+				
+				game.TweenService:Create(
+					self.main.dynamic.Menu.stageInfo.Title,
+					tweenUtils.getPreset(1),
+					{
+						TextTransparency = 1
+					}
+				):Play()
+			end)
+		end
+	end,
+	
+	enableMenuButton = function(self: self)
+		local menuButton = self.main.dynamic.MenuButton
+		local originTextColor: Color3 = menuButton.TextColor3
+		
+		--## Hover Effects ##--
+		
+		self.maid:GiveTask(menuButton.MouseEnter:Connect(function()
+			game.TweenService:Create(
+				menuButton,
+				tweenUtils.getPreset(0.25),
+				{
+					TextCOlor3 = Color3.fromRGB(255, 255, 255)
+				}
+			):Play()
+			
+			soundUtils.wrap("hover")
+				:clone()
+				:autoDestroy()
+				:setParent(game.SoundService.playing)
+				:play()
+		end))
+
+		self.maid:GiveTask(menuButton.MouseLeave:Connect(function()
+			game.TweenService:Create(
+				menuButton,
+				tweenUtils.getPreset(0.25),
+				{
+					TextCOlor3 = originTextColor
+				}
+			):Play()
+		end))
+		
+		--## Functionality ##--
+		
+		self.maid:GiveTask(menuButton.MouseButton1Down:Connect(function()
+			soundUtils.wrap("click")
+				:clone()
+				:autoDestroy()
+				:setParent(game.SoundService.playing)
+				:play()
+			
+			self.clientService.stateMachine:setState("broswing")
+		end))
+
+		self.maid:GiveTask(menuButton.MouseButton1Down:Connect(function()
+
+		end))
+	end,
+	
+	disableMenuButton = function(self: self)
+		self.maid:DoCleaning()
+	end,
+	
+	ready = function(self: self)
+		--## Init ##--
+		do
+			local playerGui = game.Players.LocalPlayer:WaitForChild("PlayerGui")
+			self.main.Parent = playerGui
+		end
+		
+		--## Initial UI state ##--
+		do
+			for _, textButton: TextButton in self.main.dynamic.Menu.controls:GetChildren() do
+				if not textButton:IsA("TextButton") then
+					continue
+				end
+				
+				textButton.TextTransparency = 1
+			end
+			
+			for _, textButton: TextButton in self.main.dynamic.Menu.stageInfo:GetChildren() do
+				textButton.TextTransparency = 1
+			end
+			
+			self.main.dynamic.MenuButton.Visible = false
+		end
+	end,
+} :: self

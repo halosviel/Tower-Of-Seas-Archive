@@ -28,7 +28,7 @@ events.fetchMusicSetting.OnServerInvoke = function(player: Player) : boolean
 				return nil
 			end
 			
-			console.log("data read", data)
+			--console.log("data read", data)
 			return data
 		end,
 		function(err: string?)
@@ -37,7 +37,7 @@ events.fetchMusicSetting.OnServerInvoke = function(player: Player) : boolean
 		end,
 	}
 	
-	console.log("data returned B)", value)
+	--console.log("data returned B)", value)
 	return value
 end
 
@@ -57,5 +57,5 @@ events.updateMusicSetting.OnServerEvent:Connect(function(player: Player, value: 
 		end,
 	}
 	
-	console.log("data saved status", done)
+	--console.log("data saved status", done)
 end)

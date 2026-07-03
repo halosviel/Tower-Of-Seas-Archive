@@ -48,7 +48,7 @@ return {
 	--# same comments as bove
 	pause = function(self: self)
 		if self.isPlaying == false then
-			console.warn("No music playing")
+			--console.warn("No music playing")
 			return
 		end
 		
@@ -75,7 +75,7 @@ return {
 						randomSound = sounds[math.random(1, #sounds)]
 					until randomSound ~= self.currentSong
 					
-					randomSound:Play()
+					--randomSound:Play()
 					
 					self.currentSong = randomSound
 					self.currentSong.Ended:Wait()

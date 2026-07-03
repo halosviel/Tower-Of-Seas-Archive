@@ -75,7 +75,9 @@ return {
 						randomSound = sounds[math.random(1, #sounds)]
 					until randomSound ~= self.currentSong
 					
-					--randomSound:Play()
+					if self.isPlaying then
+						randomSound:Play()
+					end
 					
 					self.currentSong = randomSound
 					self.currentSong.Ended:Wait()

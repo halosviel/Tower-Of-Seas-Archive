@@ -10,6 +10,8 @@
 -- [CONFIG]
 local RESPAWN_TIME = 2
 
+-->
+
 local function onCharacterAdded(character: Model)
 	local player: Player = game.Players:GetPlayerFromCharacter(character)
 	local humanoid: Humanoid = character:WaitForChild("Humanoid")

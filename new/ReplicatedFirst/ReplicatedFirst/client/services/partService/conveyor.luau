@@ -7,4 +7,6 @@ return function(conveyor: Part)
 			* speed
 		) % texture.StudsPerTileV
 	end)
+	
+	conveyor.AssemblyLinearVelocity = conveyor.CFrame.lookVector * speed
 end

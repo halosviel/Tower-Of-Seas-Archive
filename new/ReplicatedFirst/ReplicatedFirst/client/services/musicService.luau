@@ -13,8 +13,6 @@
 local types = require("./_types")
 local console = require("@game/ReplicatedFirst/pip/console")
 local import = require("@game/ReplicatedFirst/pip/import")
-
-local stateMachine = require("@game/ReplicatedFirst/shared/utils/stateMachine")
 local events = require("@game/ReplicatedFirst/shared/events")
 
 -- [TYPES]
@@ -28,28 +26,8 @@ return {
 		self.interfaceService = import "./interfaceService"
 		
 		-- [ENTRIES]
-		self.songs = {}
-		self.currentSong = nil
 		self.isPlaying = false
-		self.stateMachine = stateMachine.new("musicStateMachine", {
-			playing = {
-				enter = function(state: stateMachine.State)
-					
-				end,
-				exit = function(state: stateMachine.State)
-					
-				end,
-			},
-			
-			paused = {
-				enter = function(state: stateMachine.State)
-					
-				end,
-				exit = function(state: stateMachine.State)
-					
-				end,
-			}
-		})
+		self.currentSong = nil
 	end,
 	
 	play = function(self: self)
@@ -58,7 +36,9 @@ return {
 			return
 		end
 		
-		self.stateMachine:setState("playing") --# do audio stuffs
+		if self.currentSong then
+			self.currentSong:Resume()
+		end
 		self.isPlaying = true
 		
 		self.interfaceService:_setMusicButtonEnabled(true) --# change text
@@ -72,7 +52,9 @@ return {
 			return
 		end
 		
-		self.stateMachine:setState("paused")
+		if self.currentSong then
+			self.currentSong:Pause()
+		end
 		self.isPlaying = false
 		
 		self.interfaceService:_setMusicButtonEnabled(false)
@@ -81,9 +63,24 @@ return {
 	
 	ready = function(self: self)
 		
-		--## Cache Songs ##--
-		for _, sound: Sound in game.SoundService.bgm:GetChildren() do
-			table.insert(self.songs, sound)
+		--## Start Player Thread ##--
+		do
+			task.defer(function()
+				while true do
+					local sounds: { Sound } = game.SoundService.bgm:GetChildren()
+					local randomSound: Sound?
+					
+					repeat
+						task.wait()
+						randomSound = sounds[math.random(1, #sounds)]
+					until randomSound ~= self.currentSong
+					
+					randomSound:Play()
+					
+					self.currentSong = randomSound
+					self.currentSong.Ended:Wait()
+				end
+			end)
 		end
 		
 		--## Request Data ##--

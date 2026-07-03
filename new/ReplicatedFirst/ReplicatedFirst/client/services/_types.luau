@@ -45,10 +45,8 @@ export type PartService = {
 
 export type MusicService = {
 	interfaceService: InterfaceService,
-	songs: { Sound },
-	currentSong: Sound?,
 	isPlaying: boolean,
-	stateMachine: stateMachine.StateMachine,
+	currentSong: Sound,
 	constructor: ( self: MusicService ) -> nil,
 	play: ( self: MusicService ) -> nil,
 	pause: ( self: MusicService ) -> nil,

@@ -103,6 +103,16 @@ return {
 		):Play()
 	end,
 	
+	--[[
+		Called by MusicService to change the label's text.
+	]]
+	_setMusicButtonEnabled = function(self: self, value: boolean)
+		params.expect("boolean", value)
+
+		local musicButton: TextButton = self.main.static.MusicButton
+		musicButton.Text = value and "Music: On" or "Music: Off"
+	end,
+	
 	enterMenu = function(self: self)
 		workspace:WaitForChild("static"):WaitForChild("stages")
 		

@@ -20,6 +20,7 @@ export type InterfaceService = {
 	_viewStage: ( self: InterfaceService, id: number ) -> Tween,
 	_updateStageInfo: ( self: InterfaceService ) -> Model,
 	_setMusicButtonVisible: ( self: InterfaceService, value: boolean ) -> nil,
+	_setMusicButtonEnabled: ( self: InterfaceService, value: boolean ) -> nil,
 	enterMenu: ( self: InterfaceService ) -> nil,
 	exitMenu: ( self: InterfaceService ) -> nil,
 	enableMenuButton: ( self: InterfaceService ) -> nil,

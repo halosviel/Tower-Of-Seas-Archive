@@ -19,7 +19,7 @@ events.fetchMusicSetting.OnServerInvoke = function(player: Player) : boolean
 		function()
 			local data: boolean = musicStore:GetAsync(player.UserId)
 			if data == nil then
-				data = false
+				data = true
 				musicStore:SetAsync(player.UserId, false)
 			end
 			

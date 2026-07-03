@@ -60,6 +60,8 @@ return {
 		
 		self.stateMachine:setState("playing")
 		self.isPlaying = true
+		
+		self.interfaceService:_setMusicButtonEnabled(true) --# change text
 	end,
 	
 	pause = function(self: self)
@@ -70,6 +72,8 @@ return {
 		
 		self.stateMachine:setState("paused")
 		self.isPlaying = false
+		
+		self.interfaceService:_setMusicButtonEnabled(false)
 	end,
 	
 	ready = function(self: self)
@@ -99,6 +103,7 @@ return {
 				end
 				
 				self.interfaceService:_setMusicButtonVisible(true)
+				self.interfaceService:_setMusicButtonEnabled(musicSetting)
 			end)
 		end
 	end,

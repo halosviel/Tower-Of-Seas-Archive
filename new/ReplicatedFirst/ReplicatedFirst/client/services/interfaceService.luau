@@ -221,6 +221,8 @@ return {
 							:autoDestroy()
 							:setParent(game.SoundService.playing)
 							:play()
+						
+						uiScale.Scale = 1.1
 					end))
 					
 					self.maid:GiveTask(textButton.MouseLeave:Connect(function()
@@ -235,6 +237,8 @@ return {
 								{ TextTransparency = 0 }
 							):Play()
 						end
+						
+						uiScale.Scale = 1
 					end))
 					
 					self.maid:GiveTask(textButton.MouseButton1Down:Connect(function()
@@ -326,6 +330,7 @@ return {
 	enableMenuButton = function(self: self)
 		local menuButton = self.main.dynamic.MenuButton
 		local originTextColor: Color3 = menuButton.TextColor3
+		local uiScale: UIScale = menuButton.UIScale
 		
 		--## Hover Effects ##--
 		
@@ -343,6 +348,8 @@ return {
 				:autoDestroy()
 				:setParent(game.SoundService.playing)
 				:play()
+			
+			uiScale.Scale = 1.1
 		end))
 
 		self.menuButtonMaid:GiveTask(menuButton.MouseLeave:Connect(function()
@@ -353,6 +360,8 @@ return {
 					TextColor3 = originTextColor
 				}
 			):Play()
+			
+			uiScale.Scale = 1
 		end))
 		
 		--## Functionality ##--

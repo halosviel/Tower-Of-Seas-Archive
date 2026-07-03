@@ -48,6 +48,10 @@ return {
 		return stage
 	end,
 	
+	--[[
+		Tweens the camera to the stage and calls _updateStageInfo
+		to well, update the stage info.
+	]]
 	_viewStage = function(self: self, id: number) : Tween
 		params.expect("number", id)
 		
@@ -63,7 +67,17 @@ return {
 		)
 		tween:Play()
 		
+		self:_updateStageInfo()
 		return tween
+	end,
+	
+	_updateStageInfo = function(self: self)
+		local stage: Model = workspace.static.stages:FindFirstChild(tostring(self.viewingStage))
+		--# self.viewingStage is derived from the stages themselves, so no validation needed
+		local stageName: string = stage:FindFirstChildOfClass("Model").Name
+		
+		self.main.dynamic.Menu.stageInfo.Id.Text = `no. {tostring(self.viewingStage)}`
+		self.main.dynamic.Menu.stageInfo.Title.Text = stageName
 	end,
 	
 	enterMenu = function(self: self)
@@ -284,6 +298,11 @@ return {
 					task.wait(0.2)
 				end
 			end
+			
+			--## Update Labels ##--
+			do
+				self:_updateStageInfo()
+			end
 		end
 	end,
 	
@@ -471,6 +490,7 @@ return {
 			for _, textLabel: TextLabel in self.main.dynamic.Menu.stageInfo:GetChildren() do
 				textLabel.TextTransparency = 1
 				textLabel.Visible = false
+				textLabel.Text = ""
 			end
 			
 			self.main.dynamic.MenuButton.TextTransparency = 1

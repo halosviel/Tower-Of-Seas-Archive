@@ -17,6 +17,7 @@ export type InterfaceService = {
 	constructor: ( self: InterfaceService ) -> nil,
 	_getStageById: ( self: InterfaceService, id: number ) -> Model,
 	_viewStage: ( self: InterfaceService, id: number ) -> Tween,
+	_updateStageInfo: ( self: InterfaceService ) -> Model,
 	enterMenu: ( self: InterfaceService ) -> nil,
 	exitMenu: ( self: InterfaceService ) -> nil,
 	enableMenuButton: ( self: InterfaceService ) -> nil,

@@ -48,7 +48,7 @@ return {
 			self.players[player] = stageId
 			player:LoadCharacterAsync()
 			
-			print(`Player {tostring(player)} now on stage {stageId}`)
+			--print(`Player {tostring(player)} now on stage {stageId}`)
 			--# playerSpawnHandler takes care of the rest
 			
 			return true

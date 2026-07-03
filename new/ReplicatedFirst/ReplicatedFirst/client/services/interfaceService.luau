@@ -528,6 +528,7 @@ return {
 		do
 			local musicButton: TextButton = self.main.static.MusicButton
 			local originalTextColor: Color3 = musicButton.TextColor3
+			local uiScale: UIScale = musicButton:FindFirstChild("UIScale")
 			
 			--## Hover Effects ##--
 			

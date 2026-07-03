@@ -58,12 +58,14 @@ return {
 			return
 		end
 		
-		self.stateMachine:setState("playing")
+		self.stateMachine:setState("playing") --# do audio stuffs
 		self.isPlaying = true
 		
 		self.interfaceService:_setMusicButtonEnabled(true) --# change text
+		events.updateMusicSetting:Fire(true) --# save
 	end,
 	
+	--# same comments as bove
 	pause = function(self: self)
 		if self.isPlaying == false then
 			console.warn("No music playing")
@@ -74,6 +76,7 @@ return {
 		self.isPlaying = false
 		
 		self.interfaceService:_setMusicButtonEnabled(false)
+		events.updateMusicSetting:Fire(false)
 	end,
 	
 	ready = function(self: self)

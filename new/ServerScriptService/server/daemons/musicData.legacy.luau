@@ -57,5 +57,5 @@ events.updateMusicSetting.OnServerEvent:Connect(function(player: Player, value: 
 		end,
 	}
 	
-	console.log("data saved status:", done)
+	console.log("data saved status", done)
 end)

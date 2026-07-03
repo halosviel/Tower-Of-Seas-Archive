@@ -18,9 +18,9 @@ events.fetchMusicSetting.OnServerInvoke = function(player: Player) : boolean
 	local _, value: boolean? = try {
 		function()
 			local data: boolean = musicStore:GetAsync(player.UserId)
-			if not data then
-				console.warn("No data returned from musicStore", `player: {tostring(player)}`)
-				return nil
+			if data == nil then
+				data = false
+				musicStore:SetAsync(player.UserId, false)
 			end
 			
 			if typeof(data) ~= "boolean" then

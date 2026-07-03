@@ -32,4 +32,11 @@ export type ClientService = {
 	ready: ( self: ClientService ) -> nil
 }
 
+export type PartService = {
+	names: { string },
+	modules: { [string]: ( part: BasePart ) -> nil },
+	constructor: ( self: ClientService ) -> nil,
+	ready: ( self: ClientService ) -> nil
+}
+
 return {}

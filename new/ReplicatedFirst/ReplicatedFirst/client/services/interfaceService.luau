@@ -341,22 +341,27 @@ return {
 			
 			--## Hide Stage Name Label ##--
 			
-			--if self.clientService.stateMachine.state ~= "browsing" then
-				local tween2: Tween = game.TweenService:Create(
-					self.main.dynamic.Menu.stageInfo.Title,
-					tweenUtils.getPreset(1),
-					{
-						TextTransparency = 1
-					}
-				)
-				tween2:Play()
-				tween2.Completed:Once(function()
-					if tween2.PlaybackState == Enum.PlaybackState.Completed then
-						return
-					end
-					self.main.dynamic.Menu.stageInfo.Title.Visible = false
-				end)
-			--end
+			local tween2: Tween = game.TweenService:Create(
+				self.main.dynamic.Menu.stageInfo.Title,
+				tweenUtils.getPreset(1),
+				{
+					TextTransparency = 1
+				}
+			)
+			tween2:Play()
+			tween2.Completed:Once(function()
+				if tween2.PlaybackState == Enum.PlaybackState.Completed then
+					return
+				end
+				self.main.dynamic.Menu.stageInfo.Title.Visible = false
+			end)
+			
+			--## Reset Camera ##--
+			
+			local character: Model = game.Players.LocalPlayer.Character or game.Players.LocalPlayer.CharacterAdded:Wait()
+			local humanoid: Humanoid  = character:FindFirstChild("Humanoid")
+			workspace.CurrentCamera.CameraSubject = humanoid
+			workspace.CurrentCamera.CameraType = Enum.CameraType.Custom
 		end)
 	end,
 	

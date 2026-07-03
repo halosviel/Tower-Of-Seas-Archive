@@ -8,7 +8,7 @@
 ]=]
 
 -- [CONFIG]
-local RESPAWN_TIME = 2
+local RESPAWN_TIME = 1
 
 -->
 

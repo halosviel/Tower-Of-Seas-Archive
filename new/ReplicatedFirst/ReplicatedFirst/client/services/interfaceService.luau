@@ -83,7 +83,6 @@ return {
 				task.wait(1) --# hardcoded delay ☠️
 			else
 				local tween: Tween = self:_viewStage(self.viewingStage) --# tween is auto-played in the function
-				tween.Completed:Wait()
 			end
 		end
 		
@@ -140,6 +139,8 @@ return {
 							}
 						):Play()
 					end))
+					
+					textLabel.Visible = true
 				end
 				
 				initLabel(title)
@@ -266,6 +267,11 @@ return {
 				
 				--## Init ##--
 				
+				--# make them visible (enable mouse hover icon) first so that they dont come in one by one
+				for _, textButton: TextButton in ipairs(controls) do
+					textButton.Visible = true
+				end
+				
 				for _, textButton: TextButton in ipairs(controls) do
 					--# fade in
 					game.TweenService:Create(
@@ -285,8 +291,6 @@ return {
 	exitMenu = function(self: self)
 		self.maid:DoCleaning()
 		
-		--## Fadeout Effect ##--
-		
 		local controls = { --# hardcoded again lol (but its backwards)
 			self.main.dynamic.Menu.controls.Forward,
 			self.main.dynamic.Menu.controls.Play,
@@ -294,36 +298,66 @@ return {
 		}
 		
 		task.defer(function()
+			
+			--## Hide Controls First ##--
+			
 			for _, textButton: TextButton in ipairs(controls) do
 				if not textButton:IsA("TextButton") then
 					continue
 				end
 				
-				game.TweenService:Create(
+				local tween: Tween = game.TweenService:Create(
 					textButton,
 					tweenUtils.getPreset(0.5),
 					{
 						TextTransparency = 1
 					}
-				):Play()
+				)
+				tween:Play()
+				tween.Completed:Once(function()
+					if tween.PlaybackState == Enum.PlaybackState.Cancelled then
+						return
+					end
+					textButton.Visible = false
+				end)
 			end
 			
-			game.TweenService:Create(
+			--## Hide Stage Id Label ##--
+			
+			local tween1: Tween = game.TweenService:Create(
 				self.main.dynamic.Menu.stageInfo.Id,
 				tweenUtils.getPreset(0.5),
 				{
 					TextTransparency = 1
 				}
-			):Play()
+			)
+			tween1:Play()
+			tween1.Completed:Once(function()
+				if tween1.PlaybackState == Enum.PlaybackState.Cancelled then
+					return
+				end
+				self.main.dynamic.Menu.stageInfo.Id.Visible = false
+			end)
 			task.wait(1)
 			
-			game.TweenService:Create(
-				self.main.dynamic.Menu.stageInfo.Title,
-				tweenUtils.getPreset(1),
-				{
-					TextTransparency = 1
-				}
-			):Play()
+			--## Hide Stage Name Label ##--
+
+			if self.clientService.stateMachine.state ~= "browsing" then
+				local tween2: Tween = game.TweenService:Create(
+					self.main.dynamic.Menu.stageInfo.Title,
+					tweenUtils.getPreset(1),
+					{
+						TextTransparency = 1
+					}
+				)
+				tween2:Play()
+				tween2.Completed:Once(function()
+					if tween2.PlaybackState == Enum.PlaybackState.Cancelled then
+						return
+					end
+					self.main.dynamic.Menu.stageInfo.Title.Visible = false
+				end)
+			end
 		end)
 	end,
 	
@@ -424,10 +458,12 @@ return {
 				end
 				
 				textButton.TextTransparency = 1
+				textButton.Visible = false
 			end
 			
-			for _, textButton: TextButton in self.main.dynamic.Menu.stageInfo:GetChildren() do
-				textButton.TextTransparency = 1
+			for _, textLabel: TextLabel in self.main.dynamic.Menu.stageInfo:GetChildren() do
+				textLabel.TextTransparency = 1
+				textLabel.Visible = false
 			end
 			
 			self.main.dynamic.MenuButton.TextTransparency = 1

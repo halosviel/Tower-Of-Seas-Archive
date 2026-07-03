@@ -39,11 +39,11 @@ return {
 				return false, "Request denied"
 			end
 			
-			local currentStageId: number? = self.players[player]
+			--[[local currentStageId: number? = self.players[player]
 			if currentStageId == stageId then
 				console.warn(`Player {tostring(player)} tried to enter the same stage??`)
 				return false, "Cannot enter same stage"
-			end
+			end]]
 			
 			local stage: Model = workspace.static.stages:FindFirstChild(stageId)
 			if not stage then
@@ -53,6 +53,8 @@ return {
 			
 			self.players[player] = stageId
 			player:LoadCharacterAsync()
+			
+			print(`Player {tostring(player)} now on stage {stageId}`)
 			--# playerSpawnHandler takes care of the rest
 			
 			return true

@@ -31,6 +31,7 @@ return {
 		self.viewingStage = 1 --# view stage 1 by default (NOT a config)
 		self.firstEnter = true --# for instant camera set on first join
 		self.maid = maid.new()
+		self.menuButtonMaid = maid.new()
 	end,
 	
 	_getStageById = function(self: self, id: number) : Model
@@ -172,8 +173,8 @@ return {
 						end
 						
 						if response == true then
-							self:exitMenu()
 							self.clientService.selectedStage = self.viewingStage
+							self.clientService.stateMachine:setState("playing")
 						else
 							if message then
 								console.warn(`Server rejected stage select request with message: {tostring(message)}`)
@@ -282,46 +283,44 @@ return {
 		
 		--## Fadeout Effect ##--
 		
-		do
-			local controls = { --# hardcoded again lol (but its backwards)
-				self.main.dynamic.Menu.controls.Forward,
-				self.main.dynamic.Menu.controls.Play,
-				self.main.dynamic.Menu.controls.Back
-			}
-			
-			task.defer(function()
-				for _, textButton: TextButton in ipairs(controls) do
-					if not textButton:IsA("TextButton") then
-						continue
-					end
-					
-					game.TweenService:Create(
-						textButton,
-						tweenUtils.getPreset(0.5),
-						{
-							TextTransparency = 1
-						}
-					):Play()
+		local controls = { --# hardcoded again lol (but its backwards)
+			self.main.dynamic.Menu.controls.Forward,
+			self.main.dynamic.Menu.controls.Play,
+			self.main.dynamic.Menu.controls.Back
+		}
+		
+		task.defer(function()
+			for _, textButton: TextButton in ipairs(controls) do
+				if not textButton:IsA("TextButton") then
+					continue
 				end
 				
 				game.TweenService:Create(
-					self.main.dynamic.Menu.stageInfo.Id,
+					textButton,
 					tweenUtils.getPreset(0.5),
 					{
 						TextTransparency = 1
 					}
 				):Play()
-				task.wait(1)
-				
-				game.TweenService:Create(
-					self.main.dynamic.Menu.stageInfo.Title,
-					tweenUtils.getPreset(1),
-					{
-						TextTransparency = 1
-					}
-				):Play()
-			end)
-		end
+			end
+			
+			game.TweenService:Create(
+				self.main.dynamic.Menu.stageInfo.Id,
+				tweenUtils.getPreset(0.5),
+				{
+					TextTransparency = 1
+				}
+			):Play()
+			task.wait(1)
+			
+			game.TweenService:Create(
+				self.main.dynamic.Menu.stageInfo.Title,
+				tweenUtils.getPreset(1),
+				{
+					TextTransparency = 1
+				}
+			):Play()
+		end)
 	end,
 	
 	enableMenuButton = function(self: self)
@@ -330,12 +329,12 @@ return {
 		
 		--## Hover Effects ##--
 		
-		self.maid:GiveTask(menuButton.MouseEnter:Connect(function()
+		self.menuButtonMaid:GiveTask(menuButton.MouseEnter:Connect(function()
 			game.TweenService:Create(
 				menuButton,
 				tweenUtils.getPreset(0.25),
 				{
-					TextCOlor3 = Color3.fromRGB(255, 255, 255)
+					TextColor3 = Color3.fromRGB(255, 255, 255)
 				}
 			):Play()
 			
@@ -346,35 +345,59 @@ return {
 				:play()
 		end))
 
-		self.maid:GiveTask(menuButton.MouseLeave:Connect(function()
+		self.menuButtonMaid:GiveTask(menuButton.MouseLeave:Connect(function()
 			game.TweenService:Create(
 				menuButton,
 				tweenUtils.getPreset(0.25),
 				{
-					TextCOlor3 = originTextColor
+					TextColor3 = originTextColor
 				}
 			):Play()
 		end))
 		
 		--## Functionality ##--
 		
-		self.maid:GiveTask(menuButton.MouseButton1Down:Connect(function()
+		self.menuButtonMaid:GiveTask(menuButton.MouseButton1Down:Connect(function()
 			soundUtils.wrap("click")
 				:clone()
 				:autoDestroy()
 				:setParent(game.SoundService.playing)
 				:play()
 			
-			self.clientService.stateMachine:setState("broswing")
+			self.clientService.stateMachine:setState("browsing")
 		end))
-
-		self.maid:GiveTask(menuButton.MouseButton1Down:Connect(function()
-
-		end))
+		
+		--## Visibility ##--
+		
+		self.main.dynamic.MenuButton.Visible = true
+		
+		game.TweenService:Create(
+			menuButton,
+			tweenUtils.getPreset(0.25),
+			{
+				TextTransparency = 0
+			}
+		):Play()
 	end,
 	
 	disableMenuButton = function(self: self)
-		self.maid:DoCleaning()
+		self.menuButtonMaid:DoCleaning()
+		
+		local menuButton = self.main.dynamic.MenuButton
+		
+		--## Visibility ##--
+		
+		local tween: Tween = game.TweenService:Create(
+			menuButton,
+			tweenUtils.getPreset(0.25),
+			{
+				TextTransparency = 1
+			}
+		)
+		tween:Play()
+		tween.Completed:Once(function()
+			self.main.dynamic.MenuButton.Visible = false
+		end)
 	end,
 	
 	ready = function(self: self)
@@ -398,6 +421,7 @@ return {
 				textButton.TextTransparency = 1
 			end
 			
+			self.main.dynamic.MenuButton.TextTransparency = 1
 			self.main.dynamic.MenuButton.Visible = false
 		end
 	end,

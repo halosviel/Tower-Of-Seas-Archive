@@ -13,6 +13,7 @@ export type InterfaceService = {
 	viewingStage: number,
 	firstEnter: boolean,
 	maid: maid.Maid,
+	menuButtonMaid: maid.Maid,
 	constructor: ( self: InterfaceService ) -> nil,
 	_getStageById: ( self: InterfaceService, id: number ) -> Model,
 	_viewStage: ( self: InterfaceService, id: number ) -> Tween,

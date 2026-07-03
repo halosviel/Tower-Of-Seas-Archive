@@ -34,14 +34,15 @@ return {
 			browsing = {
 				enter = function(state: BrowsingState)
 					self.interfaceService:enterMenu()
+					self.interfaceService:disableMenuButton()
 				end,
 				exit = function(state: BrowsingState)
-					self.interfaceService:enterMenu()
+					self.interfaceService:exitMenu()
 				end,
 			},
 			playing = {
 				enter = function(state: PlayingState)
-					game.Players.LocalPlayer:LoadCharacterAsync()
+					self.interfaceService:enableMenuButton()
 				end,
 				exit = function(state: PlayingState)
 					

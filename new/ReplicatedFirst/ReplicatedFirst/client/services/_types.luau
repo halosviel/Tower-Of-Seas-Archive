@@ -9,6 +9,7 @@ local maid = require("@game/ReplicatedFirst/shared/libs/maid")
 export type InterfaceService = {
 	TWEEN_PRESET: TweenInfo,
 	clientService: ClientService,
+	musicService: MusicService,
 	main: typeof(game.ReplicatedFirst.client.services.interfaceService.main),
 	viewingStage: number,
 	firstEnter: boolean,
@@ -18,6 +19,7 @@ export type InterfaceService = {
 	_getStageById: ( self: InterfaceService, id: number ) -> Model,
 	_viewStage: ( self: InterfaceService, id: number ) -> Tween,
 	_updateStageInfo: ( self: InterfaceService ) -> Model,
+	_setMusicButtonVisible: ( self: InterfaceService, value: boolean ) -> nil,
 	enterMenu: ( self: InterfaceService ) -> nil,
 	exitMenu: ( self: InterfaceService ) -> nil,
 	enableMenuButton: ( self: InterfaceService ) -> nil,
@@ -36,8 +38,20 @@ export type ClientService = {
 export type PartService = {
 	names: { string },
 	modules: { [string]: ( part: BasePart ) -> nil },
-	constructor: ( self: ClientService ) -> nil,
-	ready: ( self: ClientService ) -> nil
+	constructor: ( self: PartService ) -> nil,
+	ready: ( self: PartService ) -> nil
+}
+
+export type MusicService = {
+	interfaceService: InterfaceService,
+	songs: { Sound },
+	currentSong: Sound?,
+	isPlaying: boolean,
+	stateMachine: stateMachine.StateMachine,
+	constructor: ( self: MusicService ) -> nil,
+	play: ( self: MusicService ) -> nil,
+	pause: ( self: MusicService ) -> nil,
+	ready: ( self: MusicService ) -> nil
 }
 
 return {}

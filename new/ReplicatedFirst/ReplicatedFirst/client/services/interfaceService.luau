@@ -25,6 +25,7 @@ return {
 		
 		-- [IMPORTS]
 		self.clientService = import "./clientService"
+		self.musicService = import "./musicService"
 		
 		-- [ENTRIES]
 		self.main = script.main:Clone() --# parented in ready()
@@ -78,6 +79,28 @@ return {
 		
 		self.main.dynamic.Menu.stageInfo.Id.Text = `no. {tostring(self.viewingStage)}`
 		self.main.dynamic.Menu.stageInfo.Title.Text = stageName
+	end,
+	
+	--[[
+		Used by MusicService to make the music button appear once
+		the data has been fetched from the server.
+		
+		Just sets it to true once, but there is future infrastructure
+		support B) 
+	]]
+	_setMusicButtonVisible = function(self: self, value: boolean)
+		params.expect("boolean", value)
+		
+		local musicButton: TextButton = self.main.static.MusicButton
+		musicButton.Visible = true
+		
+		game.TweenService:Create(
+			musicButton,
+			tweenUtils.getPreset(0.25),
+			{
+				TextTransparency = 0
+			}
+		):Play()
 	end,
 	
 	enterMenu = function(self: self)
@@ -386,7 +409,7 @@ return {
 	
 	enableMenuButton = function(self: self)
 		local menuButton = self.main.dynamic.MenuButton
-		local originTextColor: Color3 = menuButton.TextColor3
+		local originalTextColor: Color3 = menuButton.TextColor3
 		local uiScale: UIScale = menuButton.UIScale
 		
 		--## Hover Effects ##--
@@ -414,7 +437,7 @@ return {
 				menuButton,
 				tweenUtils.getPreset(0.25),
 				{
-					TextColor3 = originTextColor
+					TextColor3 = originalTextColor
 				}
 			):Play()
 			
@@ -495,6 +518,66 @@ return {
 			
 			self.main.dynamic.MenuButton.TextTransparency = 1
 			self.main.dynamic.MenuButton.Visible = false
+
+			self.main.static.MusicButton.TextTransparency = 1
+			self.main.static.MusicButton.Visible = true
+		end
+		
+		--## Music Button ##--
+		--# (lowk copy pasted from menu)
+		do
+			local musicButton: TextButton = self.main.static.MusicButton
+			local originalTextColor: Color3 = musicButton.TextColor3
+			
+			--## Hover Effects ##--
+			
+			musicButton.MouseEnter:Connect(function()
+				game.TweenService:Create(
+					musicButton,
+					tweenUtils.getPreset(0.25),
+					{
+						TextColor3 = Color3.fromRGB(255, 255, 255)
+					}
+				):Play()
+				
+				soundUtils.wrap("hover")
+					:clone()
+					:autoDestroy()
+					:setParent(game.SoundService.playing)
+					:play()
+				
+				uiScale.Scale = 1.1
+			end)
+			
+			musicButton.MouseLeave:Connect(function()
+				game.TweenService:Create(
+					musicButton,
+					tweenUtils.getPreset(0.25),
+					{
+						TextColor3 = originalTextColor
+					}
+				):Play()
+				
+				uiScale.Scale = 1
+			end)
+			
+			--## Functionality ##--
+			
+			musicButton.MouseButton1Down:Connect(function()
+				soundUtils.wrap("click")
+					:clone()
+					:autoDestroy()
+					:setParent(game.SoundService.playing)
+					:play()
+				
+				if self.musicService.isPlaying then
+					musicButton.Text = "Music: Off"
+					self.musicService:pause()
+				else
+					musicButton.Text = "Music: On"
+					self.musicService:play()
+				end
+			end)
 		end
 	end,
 } :: self

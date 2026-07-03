@@ -2,6 +2,9 @@
 	[INFO]
 	author: @halosviel
 	created: 2026 July 03
+	
+	[DESCRIPTION]
+	A dedicated script for Teleportation Tower.
 ]=]
 
 local cooldowns = {}

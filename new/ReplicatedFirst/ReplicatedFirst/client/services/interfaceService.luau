@@ -108,6 +108,7 @@ return {
 							TextTransparency = 0
 						}
 					):Play()
+					textLabel.Visible = true
 				end
 				
 				animateIn(title)
@@ -139,8 +140,6 @@ return {
 							}
 						):Play()
 					end))
-					
-					textLabel.Visible = true
 				end
 				
 				initLabel(title)
@@ -315,7 +314,7 @@ return {
 				)
 				tween:Play()
 				tween.Completed:Once(function()
-					if tween.PlaybackState == Enum.PlaybackState.Cancelled then
+					if tween.PlaybackState == Enum.PlaybackState.Completed then
 						return
 					end
 					textButton.Visible = false
@@ -333,16 +332,16 @@ return {
 			)
 			tween1:Play()
 			tween1.Completed:Once(function()
-				if tween1.PlaybackState == Enum.PlaybackState.Cancelled then
+				if tween1.PlaybackState == Enum.PlaybackState.Completed then
 					return
 				end
 				self.main.dynamic.Menu.stageInfo.Id.Visible = false
 			end)
-			task.wait(1)
+			task.wait(0.15)
 			
 			--## Hide Stage Name Label ##--
-
-			if self.clientService.stateMachine.state ~= "browsing" then
+			
+			--if self.clientService.stateMachine.state ~= "browsing" then
 				local tween2: Tween = game.TweenService:Create(
 					self.main.dynamic.Menu.stageInfo.Title,
 					tweenUtils.getPreset(1),
@@ -352,12 +351,12 @@ return {
 				)
 				tween2:Play()
 				tween2.Completed:Once(function()
-					if tween2.PlaybackState == Enum.PlaybackState.Cancelled then
+					if tween2.PlaybackState == Enum.PlaybackState.Completed then
 						return
 					end
 					self.main.dynamic.Menu.stageInfo.Title.Visible = false
 				end)
-			end
+			--end
 		end)
 	end,
 	
@@ -439,6 +438,9 @@ return {
 		)
 		tween:Play()
 		tween.Completed:Once(function()
+			if tween.PlaybackState == Enum.PlaybackState.Completed then
+				return
+			end
 			self.main.dynamic.MenuButton.Visible = false
 		end)
 	end,

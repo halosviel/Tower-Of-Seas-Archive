@@ -33,8 +33,8 @@ return {
 		self.stateMachine = stateMachine.new("client", {
 			browsing = {
 				enter = function(state: BrowsingState)
-					self.interfaceService:enterMenu()
 					self.interfaceService:disableMenuButton()
+					self.interfaceService:enterMenu()
 				end,
 				exit = function(state: BrowsingState)
 					self.interfaceService:exitMenu()
@@ -42,7 +42,12 @@ return {
 			},
 			playing = {
 				enter = function(state: PlayingState)
-					self.interfaceService:enableMenuButton()
+					task.delay(1, function() --# on god cba to fix anim bugs
+						if self.stateMachine.state ~= "playing" then
+							return
+						end
+						self.interfaceService:enableMenuButton()
+					end)
 				end,
 				exit = function(state: PlayingState)
 					
